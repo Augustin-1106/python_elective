@@ -3,7 +3,7 @@ import threading
 import time
 
 HEADER = 64
-PORT = 5050
+PORT = 6000
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
@@ -24,7 +24,7 @@ def receive():
     while True:
         in_msg = client.recv(1024).decode(FORMAT)
         print(in_msg)
-        if in_msg != DISCONNECT_MESSAGE:
+        if in_msg == DISCONNECT_MESSAGE:
             break
         time.sleep(.1)
 

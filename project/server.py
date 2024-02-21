@@ -2,64 +2,74 @@ import socket
 import threading
 
 HEADER = 64
-PORT = 5050
-SERVER = socket.gethostbyname(socket.gethostname())
-ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
+PORT = 6000
+SERVER = socket.gethostbyname(socket.gethostname())
+ADDR = (SERVER,PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
+CONNECT_MESSAGE = "!CONNECT"
+CLIENT_LIST = {}
 
-client_list = {}
+connectionList = []
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
-def handle_client(conn, addr, client_list):
-    print(f"[NEW CONNECTION] {addr} connected")
-    list =False
-
-    connected = True
-    while connected:
-        msg_length = conn.recv(HEADER).decode(FORMAT)
-        if  msg_length:
-            msg_length = int(msg_length)
-            msg = conn.recv(msg_length).decode(FORMAT)
-            print(msg)
-            if "!CONNECT" in msg:
-                address = int(msg.split(':')[1])
-                list = True
-                print(type(address))
-            if msg == DISCONNECT_MESSAGE:
-                connected = False
-                conn.send("!DISCONNECT ".encode(FORMAT))
-            
-            print(f"[{addr}]: {msg}")
-            conn.send("Msg sent ".encode(FORMAT))
-            try:
-                if list:
-                    if address in client_list:
-                        print(client_list[address])
-                        print("**************************************************************")
-                        client_list[address].send(msg.encode(FORMAT))
-            except:
-                #conn1.close()
-                continue
-            
-    conn.close()
+def receive(conn):
+    msg_length = conn.recv(HEADER).decode(FORMAT)
+    if  msg_length:
+        msg_length = int(msg_length)
+        return conn.recv(msg_length).decode(FORMAT)
+    
+def post(connectionList, msg):
+    for conn in connectionList:
+        conn.send(msg.encode(FORMAT))
 
 
-def start():
-    server.listen()
-    print(f"[LISTENING] Server is listening on {SERVER}")
+def client_handler(conn, addr):
+    connectionList.append(conn)
+    print(f"New Connection {addr} added")
+
     while True:
-        conn, addr = server.accept()
+        # Receive message
+        msg = receive(conn)
 
-        if addr[1] not in client_list:
-            client_list[addr[1]] = conn
-            print(type(addr[1]))
+        #Conditions
+        if DISCONNECT_MESSAGE in msg:
+            msg =msg.split(":")
+            if len(msg) == 1:
+                print(f"[{addr}] : DISCONNECTED")
+                break
+            elif len(msg) == 2:
+                connectionList.remove(int(CLIENT_LIST[msg[1]]))
+                print(f"[{addr}] : DISCONNECTED from [{msg}]")
 
-        thread =threading.Thread(target=handle_client, args=(conn, addr, client_list))
+        elif CONNECT_MESSAGE in msg:
+            address = int(msg.split(":")[1])
+            connectionList.append(CLIENT_LIST[address])
+            print(f"[{addr}] : CONNECTED to [{address}]")
+
+        print(f"[{addr}] : {msg}") #Display message in terminal
+
+        #Send message
+        post(connectionList, msg)
+
+    conn.close()
+        
+    
+
+def initiate():
+    server.listen()
+    print(f"Server is Listening on {SERVER}")
+    while True:
+        conn,addr = server.accept()
+
+        CLIENT_LIST[addr[1]] = conn
+        print(f"Connection is established at {addr}")
+
+        thread = threading.Thread(target=client_handler, args=(conn,addr))
         thread.start()
-        print(f"[ACTIVE CONNECTIONS] {threading.active_count() - 1}")
+        print(f"Number of connections = {threading.active_count()-1}")
 
-print("[STARTING] server is starting...")
-start()
+print("Initiating SERVER..")
+initiate()
