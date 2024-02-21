@@ -1,11 +1,13 @@
 import socket
+import threading
+import time
 
 HEADER = 64
 PORT = 5050
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
-#DISCONNECT_MESSAGE = "!DISCONNECT"
+DISCONNECT_MESSAGE = "!DISCONNECT"
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
@@ -17,10 +19,23 @@ def send(msg):
     send_length += b' ' * (HEADER - len(send_length))
     client.send(send_length)
     client.send(message)
-    print(client.recv(1024).decode(FORMAT))
 
-send("Hello World!")
-send("Hello Augu!")
-send("Hello Everyone!")
-send("Hello Tim!")
-send("!DISCONNECT")
+def receive():
+    while True:
+        in_msg = client.recv(1024).decode(FORMAT)
+        print(in_msg)
+        if in_msg != DISCONNECT_MESSAGE:
+            break
+        time.sleep(.1)
+
+def write():
+    while True:
+        string = input("Sender message:")
+        send(string)
+        if string == DISCONNECT_MESSAGE:
+            break
+
+receiver = threading.Thread(target=receive)
+receiver.start()
+sender = threading.Thread(target=write)
+sender.start()
