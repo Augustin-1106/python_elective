@@ -10,8 +10,6 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 CONNECT_MESSAGE = "!CONNECT"
 CLIENT_LIST = {}
 
-connectionList = []
-
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
 
@@ -27,7 +25,8 @@ def post(connectionList, msg):
 
 
 def client_handler(conn, addr):
-    connectionList.append(conn)
+    connectionList = []
+    #connectionList.append(conn)
     print(f"New Connection {addr} added")
 
     while True:
@@ -36,12 +35,14 @@ def client_handler(conn, addr):
 
         #Conditions
         if DISCONNECT_MESSAGE in msg:
-            msg =msg.split(":")
-            if len(msg) == 1:
+            address = msg.split(":")
+            if len(address) == 1:
                 print(f"[{addr}] : DISCONNECTED")
+                conn.send("!DISCONNECT".encode(FORMAT))
                 break
-            elif len(msg) == 2:
-                connectionList.remove(int(CLIENT_LIST[msg[1]]))
+            elif len(address) == 2:
+
+                connectionList.remove(CLIENT_LIST[int(address[1])])
                 print(f"[{addr}] : DISCONNECTED from [{msg}]")
 
         elif CONNECT_MESSAGE in msg:

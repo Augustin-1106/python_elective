@@ -1,6 +1,5 @@
 import socket
 import threading
-import time
 
 HEADER = 64
 PORT = 6000
@@ -26,7 +25,6 @@ def receive():
         print(in_msg)
         if in_msg == DISCONNECT_MESSAGE:
             break
-        time.sleep(.1)
 
 def write():
     while True:
