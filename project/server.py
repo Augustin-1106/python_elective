@@ -9,8 +9,9 @@ ADDR = (SERVER,PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
 CONNECT_MESSAGE = "!CONNECT"
 ID_MESSAGE = "!ID"
+REJECT_MESSAGE = "!REJECT"
+APPROVE_MESSAGE = "!APPROVE"
 CLIENT_LIST = {}
-CLIENT_ID = {}
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
@@ -31,7 +32,6 @@ def post(connectionList, msg):
 
 def client_handler(conn, addr):
     connectionList = []
-    #connectionList.append(conn)
     print(f"New Connection {addr} added")
 
     while True:
@@ -39,26 +39,40 @@ def client_handler(conn, addr):
         msg = receive(conn)
 
         #Conditions
+
+    #Disconnect Command
         if DISCONNECT_MESSAGE in msg:
             id = msg.split(":")
             if len(id) == 1:
                 print(f"[{addr}] : DISCONNECTED")
                 conn.send("!DISCONNECT".encode(FORMAT))
+                del CLIENT_LIST[my_id]
                 break
             elif len(id) == 2:
 
                 connectionList.remove(id[1])
                 print(f"[{addr}] : DISCONNECTED from [{msg}]")
 
+    #Connect Command
         elif CONNECT_MESSAGE in msg:
             id = msg.split(":")[1]
             connectionList.append(id)
             print(f"[{addr}] : CONNECTED to [{id}]")
 
+    # Client Verification
         elif ID_MESSAGE in msg:
             id = msg.split(":")[1]
-            CLIENT_LIST[id] = conn
-            print(CLIENT_LIST)
+            if id not in CLIENT_LIST:
+                my_id = id
+                CLIENT_LIST[id] = conn
+                conn.send(APPROVE_MESSAGE.encode(FORMAT))
+                print(CLIENT_LIST)
+                continue
+            else:
+                conn.send(REJECT_MESSAGE.encode(FORMAT))
+                continue
+
+        #End of Conditions
 
         print(f"[{addr}] : {msg}") #Display message in terminal
 
