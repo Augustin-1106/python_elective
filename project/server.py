@@ -8,7 +8,9 @@ SERVER = socket.gethostbyname(socket.gethostname())
 ADDR = (SERVER,PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
 CONNECT_MESSAGE = "!CONNECT"
+ID_MESSAGE = "!ID"
 CLIENT_LIST = {}
+CLIENT_ID = {}
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)
@@ -20,8 +22,11 @@ def receive(conn):
         return conn.recv(msg_length).decode(FORMAT)
     
 def post(connectionList, msg):
-    for conn in connectionList:
-        conn.send(msg.encode(FORMAT))
+    for id in connectionList:
+        try:
+            CLIENT_LIST[id].send(msg.encode(FORMAT))
+        except:
+            continue
 
 
 def client_handler(conn, addr):
@@ -35,20 +40,25 @@ def client_handler(conn, addr):
 
         #Conditions
         if DISCONNECT_MESSAGE in msg:
-            address = msg.split(":")
-            if len(address) == 1:
+            id = msg.split(":")
+            if len(id) == 1:
                 print(f"[{addr}] : DISCONNECTED")
                 conn.send("!DISCONNECT".encode(FORMAT))
                 break
-            elif len(address) == 2:
+            elif len(id) == 2:
 
-                connectionList.remove(CLIENT_LIST[int(address[1])])
+                connectionList.remove(id[1])
                 print(f"[{addr}] : DISCONNECTED from [{msg}]")
 
         elif CONNECT_MESSAGE in msg:
-            address = int(msg.split(":")[1])
-            connectionList.append(CLIENT_LIST[address])
-            print(f"[{addr}] : CONNECTED to [{address}]")
+            id = msg.split(":")[1]
+            connectionList.append(id)
+            print(f"[{addr}] : CONNECTED to [{id}]")
+
+        elif ID_MESSAGE in msg:
+            id = msg.split(":")[1]
+            CLIENT_LIST[id] = conn
+            print(CLIENT_LIST)
 
         print(f"[{addr}] : {msg}") #Display message in terminal
 
@@ -65,7 +75,7 @@ def initiate():
     while True:
         conn,addr = server.accept()
 
-        CLIENT_LIST[addr[1]] = conn
+        #CLIENT_LIST[addr[1]] = conn
         print(f"Connection is established at {addr}")
 
         thread = threading.Thread(target=client_handler, args=(conn,addr))
