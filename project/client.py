@@ -11,6 +11,7 @@ DISCONNECT_MESSAGE = "!DISCONNECT"
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
+#Send message
 def send(msg):
     message = msg.encode(FORMAT)
     msg_length = len(message)
@@ -19,6 +20,7 @@ def send(msg):
     client.send(send_length)
     client.send(message)
 
+#receive messsage
 def receive():
     while True:
         in_msg = client.recv(1024).decode(FORMAT)
@@ -26,12 +28,17 @@ def receive():
         if in_msg == DISCONNECT_MESSAGE:
             break
 
+#write message
 def write():
     while True:
         string = input("Sender message:")
         send(string)
         if string == DISCONNECT_MESSAGE:
             break
+
+
+id = "!ID:" + input("Enter id:")
+send(id)
 
 receiver = threading.Thread(target=receive)
 receiver.start()
