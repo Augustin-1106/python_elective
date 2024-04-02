@@ -37,6 +37,7 @@ def client_handler(conn, addr):
     while True:
         # Receive message
         msg = receive(conn)
+        print(msg)
 
         #Conditions
 
@@ -74,7 +75,21 @@ def client_handler(conn, addr):
 
         #End of Conditions
 
+        for id in CLIENT_LIST:
+            print("for loop")
+            if CLIENT_LIST[id].getpeername() == addr:
+                print ("Connection is established")
+                msg = id + ":" + msg
+
         print(f"[{addr}] : {msg}") #Display message in terminal
+
+        print(f"Connection List: {connectionList}")
+
+
+        
+
+        #for id in connectionList:
+
 
         #Send message
         post(connectionList, msg)

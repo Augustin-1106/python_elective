@@ -1,5 +1,6 @@
 import socket
 import threading
+import queue
 
 HEADER = 64
 PORT = 6000
@@ -9,9 +10,13 @@ FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
 REJECT_MESSAGE = "!REJECT"
 APPROVE_MESSAGE = "!APPROVE"
+CONNECT_MESSAGE = "!CONNECT"
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
+
+#Crete a queue
+msg_queue = queue.Queue()
 
 #Send message
 def send(msg):
@@ -26,7 +31,10 @@ def send(msg):
 def receive():
     while True:
         in_msg = client.recv(1024).decode(FORMAT)
+        if CONNECT_MESSAGE in in_msg:
+            continue
         print(in_msg)
+        msg_queue.put(in_msg)
         if in_msg == DISCONNECT_MESSAGE:
             break        
 
@@ -39,8 +47,7 @@ def write():
             break
 
 #ID Verification
-def send_id():
-    id = "!ID:" + input("Enter id:")
+def send_id(id):
     send(id)
 
     in_msg = client.recv(1024).decode(FORMAT)
@@ -51,9 +58,14 @@ def send_id():
     elif in_msg == APPROVE_MESSAGE:
         print("----CONNECTION WITH SERVER ESTABLISHED----")
 
-send_id()
+def main():
+
+    id = "!ID:" + input("Enter id:")
+    send_id(id)
+    write()
 
 receiver = threading.Thread(target=receive)
 receiver.start()
-sender = threading.Thread(target=write)
-sender.start()
+        
+if __name__ == "__main__":
+    main()
