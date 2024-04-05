@@ -33,6 +33,8 @@ def receive():
         in_msg = client.recv(1024).decode(FORMAT)
         if CONNECT_MESSAGE in in_msg:
             continue
+        if APPROVE_MESSAGE in in_msg:
+            continue
         print(in_msg)
         msg_queue.put(in_msg)
         if in_msg == DISCONNECT_MESSAGE:
