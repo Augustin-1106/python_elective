@@ -4,7 +4,7 @@ import threading
 HEADER = 64
 FORMAT = 'utf-8'
 PORT = 6000
-SERVER = socket.gethostbyname(socket.gethostname())
+SERVER = socket.gethostbyname('socket.gethostname()')
 ADDR = (SERVER,PORT)
 DISCONNECT_MESSAGE = "!DISCONNECT"
 CONNECT_MESSAGE = "!CONNECT"
@@ -85,18 +85,11 @@ def client_handler(conn, addr):
 
         print(f"Connection List: {connectionList}")
 
-
-        
-
-        #for id in connectionList:
-
-
         #Send message
         post(connectionList, msg)
 
     conn.close()
-        
-    
+           
 
 def initiate():
     server.listen()

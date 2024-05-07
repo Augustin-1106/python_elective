@@ -4,7 +4,7 @@ import queue
 
 HEADER = 64
 PORT = 6000
-SERVER = socket.gethostbyname(socket.gethostname())
+SERVER = socket.gethostbyname('Adam')
 ADDR = (SERVER, PORT)
 FORMAT = 'utf-8'
 DISCONNECT_MESSAGE = "!DISCONNECT"
